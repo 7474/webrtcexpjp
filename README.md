@@ -1,7 +1,7 @@
 # 7474
 
-- [GitHub Pages](https://7474.github.io/webrtcexpjp/)
-- [snap_camera_old_new](./basic2016snap_camera_old_new.html)
+- [GitHub Pages](https://7474.github.io/webrtcexpjp/README.md)
+- [snap_camera_old_new](./basic2016/snap_camera_old_new.html)
 
 # WebRTC 実験室
 
