@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Snapshot 2SnapWrap old and new getUserMedia</title>
+</head>
+
+<body>
+  Wrap old and new getUserMedia<br />
+  <button type="button" onclick="startVideo();">Start</button>
+  <button type="button" onclick="stopVideo();">Stop</button>
+  <br />
+  <button type="button" onclick="snapshot();">Snapshot</button>
+  <button type="button" onclick="exportimage();">ExportImage</button>
+  <br /> Video:
+  <br>
+  <video id="local_video" autoplay style="width: 320px; height: 240px; border: 1px solid black;"></video>
+
+  <br /> Canvas:
+  <br>
+  <canvas id="local_canvas" style="width: 320px; height: 240px; border: 1px solid black;"></canvas>
+
+  <br /> Image:
+  <br>
+  <img id="local_image">
+</body>
+<script type="text/javascript">
+
+    var cEle = document.getElementById('local_canvas');
+    var cCtx = cEle.getContext('2d');
+    
+  // http://d.hatena.ne.jp/favril/20100225/1267099197
+  function snapshot() {
+    var vEle = document.getElementById('local_video');
+
+    cEle.width  = vEle.videoWidth;
+    cEle.height = vEle.videoHeight;
+
+    cCtx.drawImage(vEle, 0, 0);
+  }
+
+  function exportimage() {
+    var imageElement = document.getElementById("local_image");
+    imageElement.src = cEle.toDataURL();
+  }
+
+  var localVideo = document.getElementById('local_video');
+  var localStream = null;
+
+  // --- prefix -----
+  navigator.getUserMedia  = navigator.getUserMedia    || navigator.webkitGetUserMedia ||
+                            navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+  // ---------------------- video handling ----------------------- 
+  // start local video
+  function startVideo() {
+    getDeviceStream({video: true, audio: false})
+    .then(function (stream) { // success
+      localStream = stream;
+      playVideo(localVideo, stream);
+    }).catch(function (error) { // error
+      console.error('getUserMedia error:', error);
+      return;
+    });
+  }
+
+  // stop local video
+  function stopVideo() {
+    pauseVideo(localVideo);
+    stopLocalStream(localStream);
+  }
+
+  function stopLocalStream(stream) {
+    let tracks = stream.getTracks();
+    if (! tracks) {
+      console.warn('NO tracks');
+      return;
+    }
+    
+    for (let track of tracks) {
+      track.stop();
+    }
+  }
+  
+  function getDeviceStream(option) {
+    if ('getUserMedia' in navigator.mediaDevices) {
+      console.log('navigator.mediaDevices.getUserMadia');
+      return navigator.mediaDevices.getUserMedia(option);
+    }
+    else {
+      console.log('wrap navigator.getUserMadia with Promise');
+      return new Promise(function(resolve, reject){    
+        navigator.getUserMedia(option,
+          resolve,
+          reject
+        );
+      });      
+    }
+  }
+
+  function playVideo(element, stream) {
+    if ('srcObject' in element) {
+      element.srcObject = stream;
+    }
+    else {
+      element.src = window.URL.createObjectURL(stream);
+    }
+    element.play();
+    element.volume = 0;
+  }
+
+  function pauseVideo(element) {
+    element.pause();
+    if ('srcObject' in element) {
+      element.srcObject = null;
+    }
+    else {
+      if (element.src && (element.src !== '') ) {
+        window.URL.revokeObjectURL(element.src);
+      }
+      element.src = '';
+    }
+  }
+</script>
+
+</html>
